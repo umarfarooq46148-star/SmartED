@@ -20,9 +20,9 @@ class _HomePageState extends State<HomePage> {
   bool _showAIAgent = false;
 
   final Student student = Student(
-    name: 'Ahmed Ali',
-    rollNumber: '12345',
-    className: '10th (Matric)',
+    name: 'Shaheryar Ashraf',
+    rollNumber: '45417',
+    className: '10th (SSC Part II)',
   );
 
   late List<Course> courses;
@@ -143,7 +143,8 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const NotesPage(courseName: 'All Subjects'),
+                  builder: (context) =>
+                      const NotesPage(courseName: 'All Subjects'),
                 ),
               );
             },

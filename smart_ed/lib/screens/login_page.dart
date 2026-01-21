@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'register_page.dart';
+import 'splash_screen.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -27,30 +28,21 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(
-                  Icons.school_rounded,
-                  size: 80,
-                  color: Colors.blue,
+                // Logo Image
+                Image.asset(
+                  'assets/images/logo.png',
+                  height: 350,
+                  width: 350,
+                  errorBuilder: (context, error, stackTrace) {
+                    // Fallback to icon if image not found
+                    return const Icon(
+                      Icons.school_rounded,
+                      size: 80,
+                      color: Colors.blue,
+                    );
+                  },
                 ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Blind Assistive Learning',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Voice-Powered Education Platform',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 00),
                 TextFormField(
                   controller: _emailController,
                   decoration: const InputDecoration(
@@ -98,10 +90,12 @@ class _LoginPageState extends State<LoginPage> {
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
+                      // Navigate to splash screen which will then go to home
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const HomePage(),
+                          builder: (context) =>
+                              const SplashScreen(goToHome: true),
                         ),
                       );
                     }

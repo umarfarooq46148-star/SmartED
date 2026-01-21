@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'screens/login_page.dart';
+import 'package:flutter/services.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   runApp(const BlindLearningApp());
 }
 
@@ -17,7 +20,7 @@ class BlindLearningApp extends StatelessWidget {
         useMaterial3: true,
         scaffoldBackgroundColor: Colors.white,
       ),
-      home: const LoginPage(),
+      home: const SplashScreen(),
       debugShowCheckedModeBanner: false,
     );
   }

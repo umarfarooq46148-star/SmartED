@@ -11,10 +11,10 @@ enum ClassLevel {
 
 extension ClassLevelUi on ClassLevel {
   String get label => switch (this) {
-        ClassLevel.class9 => 'Class 9',
-        ClassLevel.class10 => 'Class 10',
-        ClassLevel.class11 => 'Class 11 (1st Year)',
-        ClassLevel.class12 => 'Class 12 (2nd Year)',
+        ClassLevel.class9 => 'Class 9 (SSC Part I)',
+        ClassLevel.class10 => 'Class 10 (SSC Part II)',
+        ClassLevel.class11 => 'Class 11 (HSSC Part I)',
+        ClassLevel.class12 => 'Class 12 (HSSC Part II)',
       };
 
   bool get isMatric => this == ClassLevel.class9 || this == ClassLevel.class10;
