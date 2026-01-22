@@ -14,7 +14,7 @@ class BlindLearningApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Blind Assistive Learning 12',
+      title: 'Blind Assistive Learning 32',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         useMaterial3: true,
