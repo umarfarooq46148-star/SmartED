@@ -66,6 +66,10 @@ class VoiceAssistantService {
 
       // Initialize TTS
       debugPrint('🔊 Initializing Text-to-Speech...');
+      // Make `await _tts.speak(...)` actually wait for the utterance
+      // to finish playing. Without this, sequential `await speak(...)`
+      // calls fire concurrently and the engine drops earlier ones.
+      await _tts.awaitSpeakCompletion(true);
       await _tts.setLanguage("en-US");
       await _tts.setSpeechRate(0.5);
       await _tts.setVolume(1.0);
@@ -247,9 +251,50 @@ class VoiceAssistantService {
     try {
       debugPrint("🌍 Setting TTS language: $lang");
       await _tts.setLanguage(lang);
+      // Urdu / Arabic phonetics read more clearly slightly slower &
+      // a touch lower in pitch than English.
+      if (lang.startsWith('ur') || lang.startsWith('ar')) {
+        await _tts.setSpeechRate(0.42);
+        await _tts.setPitch(0.95);
+      } else {
+        await _tts.setSpeechRate(0.5);
+        await _tts.setPitch(1.0);
+      }
     } catch (e) {
       debugPrint("❌ Error setting language: $e");
     }
+  }
+
+  /// Returns the available TTS language codes installed on the device.
+  Future<List<String>> getAvailableLanguages() async {
+    try {
+      final langs = await _tts.getLanguages;
+      return List<String>.from(langs as List);
+    } catch (_) {
+      return <String>[];
+    }
+  }
+
+  /// Picks the best available TTS language tag for an Urdu/Arabic-script
+  /// document. Falls back gracefully if the user has no Urdu voice
+  /// installed: `ur-PK` -> any Urdu -> `ar-SA` -> any Arabic -> `en-US`.
+  Future<String> bestUrduArabicLanguage() async {
+    final langs = (await getAvailableLanguages())
+        .map((l) => l.toLowerCase())
+        .toList();
+    if (langs.contains('ur-pk')) return 'ur-PK';
+    final anyUrdu = langs.firstWhere(
+      (l) => l.startsWith('ur'),
+      orElse: () => '',
+    );
+    if (anyUrdu.isNotEmpty) return anyUrdu;
+    if (langs.contains('ar-sa')) return 'ar-SA';
+    final anyArabic = langs.firstWhere(
+      (l) => l.startsWith('ar'),
+      orElse: () => '',
+    );
+    if (anyArabic.isNotEmpty) return anyArabic;
+    return 'en-US';
   }
 
   void dispose() {
