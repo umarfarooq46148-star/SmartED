@@ -29,7 +29,6 @@ class _LiveOCRCameraPageState extends State<LiveOCRCameraPage>
   String _lastMessage = '';
   String _extractedText = '';
 
-  // ✅ NEW STATES
   int _guidanceCount = 0;
   bool _waitingForCapture = false;
 
@@ -39,7 +38,6 @@ class _LiveOCRCameraPageState extends State<LiveOCRCameraPage>
     _initCamera();
   }
 
-  // 🎤 VOICE COMMANDS
   @override
   Future<void> handlePageSpecificCommand(String command) async {
     final lower = command.toLowerCase();
@@ -69,7 +67,6 @@ class _LiveOCRCameraPageState extends State<LiveOCRCameraPage>
     await super.handlePageSpecificCommand(command);
   }
 
-  // 📷 INIT CAMERA
   Future<void> _initCamera() async {
     final cameras = await availableCameras();
     final backCamera = cameras.first;
@@ -92,7 +89,6 @@ class _LiveOCRCameraPageState extends State<LiveOCRCameraPage>
     _startLiveAnalysis();
   }
 
-  // 🔍 LIVE ANALYSIS
   void _startLiveAnalysis() {
     _analysisTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
       if (_isProcessing || _isCapturing) return;
@@ -103,9 +99,9 @@ class _LiveOCRCameraPageState extends State<LiveOCRCameraPage>
         final image = await _cameraController!.takePicture();
         final inputImage = InputImage.fromFilePath(image.path);
 
-        final result = await _textRecognizer.processImage(inputImage);
+        final recognizedText = await _textRecognizer.processImage(inputImage);
 
-        _analyzeText(result);
+        _analyzeText(recognizedText);
       } catch (e) {
         debugPrint("Analysis Error: $e");
       }
@@ -114,9 +110,8 @@ class _LiveOCRCameraPageState extends State<LiveOCRCameraPage>
     });
   }
 
-  // 🧠 SMART GUIDANCE (UPDATED LOGIC)
   void _analyzeText(RecognizedText text) async {
-    if (_waitingForCapture) return; // ❌ stop guidance during wait
+    if (_waitingForCapture) return;
 
     if (text.text.trim().isEmpty) {
       _resetGuidance();
@@ -147,20 +142,17 @@ class _LiveOCRCameraPageState extends State<LiveOCRCameraPage>
       direction = "Move closer";
     }
 
-    // 🔁 give 2–3 guidance first
     if (_guidanceCount < 3 && direction.isNotEmpty) {
       _guidanceCount++;
       await _speakOnce(direction);
       return;
     }
 
-    // ✅ THEN ask for capture
     if (!_waitingForCapture) {
       _waitingForCapture = true;
 
       await voiceService.speak("Text is clear. Say capture to scan");
 
-      // ⏳ wait 3 sec
       Future.delayed(const Duration(seconds: 3), () {
         _waitingForCapture = false;
         _guidanceCount = 0;
@@ -168,7 +160,6 @@ class _LiveOCRCameraPageState extends State<LiveOCRCameraPage>
     }
   }
 
-  // 🔊 Speak once helper
   Future<void> _speakOnce(String message) async {
     if (message != _lastMessage) {
       _lastMessage = message;
@@ -176,13 +167,11 @@ class _LiveOCRCameraPageState extends State<LiveOCRCameraPage>
     }
   }
 
-  // 🔁 Reset
   void _resetGuidance() {
     _guidanceCount = 0;
     _waitingForCapture = false;
   }
 
-  // 📸 CAPTURE + OCR
   Future<void> _captureImage() async {
     if (_isCapturing) return;
 
@@ -193,20 +182,20 @@ class _LiveOCRCameraPageState extends State<LiveOCRCameraPage>
       final image = await _cameraController!.takePicture();
 
       final inputImage = InputImage.fromFilePath(image.path);
-      final result = await _textRecognizer.processImage(inputImage);
+      final recognizedText = await _textRecognizer.processImage(inputImage);
 
-      if (result.text.trim().isEmpty) {
+      if (recognizedText.text.trim().isEmpty) {
         await voiceService.speak("No readable text found");
         _restart();
         return;
       }
 
       setState(() {
-        _extractedText = result.text;
+        _extractedText = recognizedText.text;
       });
 
       await voiceService.speak("Reading text");
-      await voiceService.speak(result.text);
+      await voiceService.speak(recognizedText.text);
     } catch (e) {
       await voiceService.speak("Error capturing image");
     }
@@ -214,7 +203,6 @@ class _LiveOCRCameraPageState extends State<LiveOCRCameraPage>
     _isCapturing = false;
   }
 
-  // 💾 SAVE TEXT
   Future<void> _saveText() async {
     if (_extractedText.isEmpty) return;
 
@@ -227,13 +215,11 @@ class _LiveOCRCameraPageState extends State<LiveOCRCameraPage>
     await voiceService.speak("Document saved");
   }
 
-  // 🔁 RESTART
   void _restart() {
     _isCapturing = false;
     _startLiveAnalysis();
   }
 
-  // UI (UNCHANGED)
   @override
   Widget build(BuildContext context) {
     return Scaffold(
