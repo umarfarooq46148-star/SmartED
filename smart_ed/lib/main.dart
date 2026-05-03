@@ -10,7 +10,6 @@ void main() {
 
 class BlindLearningApp extends StatelessWidget {
   const BlindLearningApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

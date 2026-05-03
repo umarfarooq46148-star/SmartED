@@ -9,15 +9,38 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
   cupertino_icons: ^1.0.2
+
+  # 📸 Image & File Handling
   image_picker: ^1.0.7
+  file_picker: ^8.0.0   # ✅ ADD (for folder/file OCR)
+
+  camera: ^0.11.1
   google_mlkit_text_recognition: ^0.11.0
+  image: ^4.1.3
+
+
+
+  # 🔊 Voice Features
+  flutter_tts: ^4.0.2
+  speech_to_text: ^7.0.0
+  permission_handler: ^11.0.0
+
+  # 🧠 State Management
   provider: ^6.1.2
+
+  # 📁 Local Storage (for save document feature)
+  path_provider: ^2.1.2   # ✅ ADD
+  intl: ^0.19.0           # ✅ optional (for file naming)
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
   flutter_lints: ^5.0.0
+
+  # 🎨 Splash & Icons
   flutter_native_splash: ^2.3.6
   flutter_launcher_icons: ^0.13.1
 
@@ -25,15 +48,15 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/images/logo.png"
-  
+
 flutter_native_splash:
   color: "#ffffff"
   image: assets/images/logo.png
   android: true
   ios: true
-  
+ 
 flutter:
   uses-material-design: true
-  
+
   assets:
     - assets/images/logo.png
