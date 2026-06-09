@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'notes_page.dart';
 import '../widgets/global_fabs.dart';
+import '../services/voice_assistant_mixin.dart';
+import '../services/voice_command_parser.dart';
 
 class SlideViewPage extends StatefulWidget {
   final int slideNumber;
@@ -22,9 +24,47 @@ class SlideViewPage extends StatefulWidget {
 }
 
 class _SlideViewPageState extends State<SlideViewPage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, VoiceAssistantMixin {
   late TabController _tabController;
   late int currentSlide;
+
+  @override
+  Future<void> readPageContent() async {
+    await voiceService.speak('Slide $currentSlide of ${widget.totalSlides}');
+    await voiceService.speak(widget.slideTitle);
+    await voiceService.speak(
+        'You can say Next, Previous, or Read for Me to hear the slide content.');
+  }
+
+  @override
+  Future<void> handlePageSpecificCommand(String command) async {
+    final lowerCommand = command.toLowerCase();
+
+    if (lowerCommand.contains('next') && currentSlide < widget.totalSlides) {
+      await readAction('Moving to next slide');
+      setState(() {
+        currentSlide++;
+      });
+      await voiceService.speak('Slide $currentSlide');
+      // Listening will restart automatically after speaking completes
+    } else if (lowerCommand.contains('previous') && currentSlide > 1) {
+      await readAction('Moving to previous slide');
+      setState(() {
+        currentSlide--;
+      });
+      await voiceService.speak('Slide $currentSlide');
+      // Listening will restart automatically after speaking completes
+    } else if (lowerCommand.contains('read') ||
+        lowerCommand.contains('read for me')) {
+      await readAction('Reading slide content');
+      await voiceService.speak(widget.slideTitle);
+      await voiceService.speak(
+          'This is the slide content. In a real implementation, this would display the actual slide image or formatted content.');
+      // Listening will restart automatically after speaking completes
+    } else {
+      await super.handlePageSpecificCommand(command);
+    }
+  }
 
   @override
   void initState() {
@@ -50,14 +90,17 @@ class _SlideViewPageState extends State<SlideViewPage>
           IconButton(
             icon: const Icon(Icons.note),
             tooltip: 'Notes',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      NotesPage(courseName: 'Slide ${widget.slideNumber}'),
-                ),
-              );
+            onPressed: () async {
+              await readNavigation('Notes Page');
+              if (mounted && context.mounted) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        NotesPage(courseName: 'Slide ${widget.slideNumber}'),
+                  ),
+                );
+              }
             },
           ),
         ],
@@ -200,17 +243,24 @@ class _SlideViewPageState extends State<SlideViewPage>
         children: [
           ElevatedButton.icon(
             onPressed: currentSlide > 1
-                ? () {
+                ? () async {
+                    await readAction('Previous slide');
                     setState(() {
                       currentSlide--;
                     });
+                    await voiceService.speak('Slide $currentSlide');
                   }
                 : null,
             icon: const Icon(Icons.skip_previous),
             label: const Text('Previous'),
           ),
           ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: () async {
+              await readAction('Reading slide content');
+              await voiceService.speak(widget.slideTitle);
+              await voiceService.speak(
+                  'This is the slide content. In a real implementation, this would display the actual slide image or formatted content.');
+            },
             icon: const Icon(Icons.volume_up),
             label: const Text('Read for Me'),
             style: ElevatedButton.styleFrom(
@@ -220,10 +270,12 @@ class _SlideViewPageState extends State<SlideViewPage>
           ),
           ElevatedButton.icon(
             onPressed: currentSlide < widget.totalSlides
-                ? () {
+                ? () async {
+                    await readAction('Next slide');
                     setState(() {
                       currentSlide++;
                     });
+                    await voiceService.speak('Slide $currentSlide');
                   }
                 : null,
             icon: const Icon(Icons.skip_next),

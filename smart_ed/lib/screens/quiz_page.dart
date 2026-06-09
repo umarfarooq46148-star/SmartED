@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/quiz.dart';
 import 'notes_page.dart';
 import '../widgets/global_fabs.dart';
+import '../services/voice_assistant_mixin.dart';
+import '../services/voice_command_parser.dart';
 
 class QuizPage extends StatefulWidget {
   final String courseName;
@@ -17,13 +19,29 @@ class QuizPage extends StatefulWidget {
   State<QuizPage> createState() => _QuizPageState();
 }
 
-class _QuizPageState extends State<QuizPage> {
+class _QuizPageState extends State<QuizPage> with VoiceAssistantMixin {
   int _currentQuestion = 0;
   int _score = 0;
   int? _selectedAnswer;
   bool _quizCompleted = false;
 
   late List<Quiz> _questions;
+
+  @override
+  Future<void> readPageContent() async {
+    if (_quizCompleted) {
+      await voiceService.speak('Quiz completed');
+      await voiceService.speak('Your score is $_score out of ${_questions.length}');
+      await voiceService.speak('${((_score / _questions.length) * 100).toStringAsFixed(0)} percent');
+    } else {
+      await voiceService.speak('Quiz Page');
+      await voiceService.speak('Question ${_currentQuestion + 1} of ${_questions.length}');
+      await voiceService.speak(_questions[_currentQuestion].question);
+      for (int i = 0; i < _questions[_currentQuestion].options.length; i++) {
+        await voiceService.speak('Option ${i + 1}: ${_questions[_currentQuestion].options[i]}');
+      }
+    }
+  }
 
   @override
   void initState() {

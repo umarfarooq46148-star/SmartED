@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'login_page.dart';
 import '../registration/registration_definitions.dart';
 import '../registration/registration_state.dart';
+import '../services/voice_assistant_mixin.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -11,7 +12,7 @@ class RegisterPage extends StatefulWidget {
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _RegisterPageState extends State<RegisterPage> with VoiceAssistantMixin {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   final TextEditingController _nameController = TextEditingController();
@@ -19,6 +20,13 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _rollNumberController = TextEditingController();
 
   bool _showAcademicErrors = false;
+
+  @override
+  Future<void> readPageContent() async {
+    await voiceService.speak('Registration Page');
+    await voiceService.speak(
+        'Enter your personal information and academic details to create your learning profile.');
+  }
 
   @override
   void dispose() {
@@ -133,7 +141,7 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<Gender>(
-              value: state.gender,
+              initialValue: state.gender,
               decoration: const InputDecoration(
                 labelText: 'Gender',
                 border: OutlineInputBorder(),
@@ -193,7 +201,7 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<ClassLevel>(
-              value: state.classLevel,
+              initialValue: state.classLevel,
               decoration: const InputDecoration(
                 labelText: 'Class Level',
                 border: OutlineInputBorder(),
@@ -264,7 +272,7 @@ class _RegisterPageState extends State<RegisterPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         DropdownButtonFormField<MatricGroup>(
-          value: selected,
+          initialValue: selected,
           decoration: InputDecoration(
             labelText: 'Group / Stream',
             border: const OutlineInputBorder(),
@@ -321,7 +329,7 @@ class _RegisterPageState extends State<RegisterPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         DropdownButtonFormField<InterGroup>(
-          value: selected,
+          initialValue: selected,
           decoration: const InputDecoration(
             labelText: 'Group / Stream',
             border: OutlineInputBorder(),
@@ -370,7 +378,7 @@ class _RegisterPageState extends State<RegisterPage> {
     if (slot is FixedSubjectSlot) {
       // Show as disabled dropdown (still "dropdowns, not free text").
       return DropdownButtonFormField<String>(
-        value: slot.subject,
+        initialValue: slot.subject,
         decoration: const InputDecoration(
           labelText: 'Subject',
           border: OutlineInputBorder(),
@@ -398,7 +406,7 @@ class _RegisterPageState extends State<RegisterPage> {
         .toList();
 
     return DropdownButtonFormField<String>(
-      value: selected,
+      initialValue: selected,
       decoration: InputDecoration(
         labelText: elective.label,
         border: const OutlineInputBorder(),
@@ -408,8 +416,9 @@ class _RegisterPageState extends State<RegisterPage> {
         state.setElectiveSelection(slotIndex: slotIndex, subject: v);
       },
       validator: (v) {
-        if (v == null || v.trim().isEmpty)
+        if (v == null || v.trim().isEmpty) {
           return 'Please select ${elective.label}';
+        }
         return null;
       },
     );
@@ -430,7 +439,7 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  void _onRegisterPressed(BuildContext pageContext) {
+  Future<void> _onRegisterPressed(BuildContext pageContext) async {
     final state = pageContext.read<RegistrationState>();
 
     setState(() {
@@ -446,12 +455,15 @@ class _RegisterPageState extends State<RegisterPage> {
 
     // TODO: Persist data to backend/local storage.
     // For now, navigate back to LoginPage.
-    Navigator.pushAndRemoveUntil(
-      pageContext,
-      MaterialPageRoute(
-        builder: (context) => const LoginPage(),
-      ),
-      (route) => false,
-    );
+    await readAction('Registration successful. Navigating to login page.');
+    if (mounted && pageContext.mounted) {
+      Navigator.pushAndRemoveUntil(
+        pageContext,
+        MaterialPageRoute(
+          builder: (context) => const LoginPage(),
+        ),
+        (route) => false,
+      );
+    }
   }
 }

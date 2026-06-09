@@ -1,6 +1,7 @@
 /// Punjab Board (Pakistan) academic registration definitions.
 ///
 /// This file is intentionally framework-agnostic (no Flutter imports).
+library;
 
 enum ClassLevel {
   class9,

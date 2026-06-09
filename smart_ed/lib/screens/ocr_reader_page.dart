@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import '../widgets/global_fabs.dart';
+import '../services/voice_assistant_mixin.dart';
 
 class OCRReaderPage extends StatefulWidget {
   const OCRReaderPage({super.key});
@@ -11,7 +12,7 @@ class OCRReaderPage extends StatefulWidget {
   State<OCRReaderPage> createState() => _OCRReaderPageState();
 }
 
-class _OCRReaderPageState extends State<OCRReaderPage> {
+class _OCRReaderPageState extends State<OCRReaderPage> with VoiceAssistantMixin {
   final ImagePicker _picker = ImagePicker();
   final TextRecognizer _textRecognizer =
       TextRecognizer(script: TextRecognitionScript.latin);
@@ -19,6 +20,23 @@ class _OCRReaderPageState extends State<OCRReaderPage> {
   String _extractedText = '';
   bool _isProcessing = false;
   File? _imageFile;
+
+  @override
+  Future<void> readPageContent() async {
+    await voiceService.speak('OCR Reader Page');
+    await voiceService.speak('Capture a document to extract text. Say Open Camera to take a photo.');
+  }
+
+  @override
+  Future<void> handlePageSpecificCommand(String command) async {
+    final lowerCommand = command.toLowerCase();
+    if (lowerCommand.contains('camera') || lowerCommand.contains('capture')) {
+      await readAction('Opening camera');
+      _captureImage();
+    } else {
+      await super.handlePageSpecificCommand(command);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +76,10 @@ class _OCRReaderPageState extends State<OCRReaderPage> {
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton.icon(
-                      onPressed: _captureImage,
+                      onPressed: () async {
+                        await readAction('Opening camera');
+                        _captureImage();
+                      },
                       icon: const Icon(Icons.camera),
                       label: const Text('Open Camera'),
                       style: ElevatedButton.styleFrom(
@@ -123,8 +144,12 @@ class _OCRReaderPageState extends State<OCRReaderPage> {
   Future<void> _captureImage() async {
     final XFile? photo = await _picker.pickImage(source: ImageSource.camera);
 
-    if (photo == null) return;
+    if (photo == null) {
+      await readAction('Camera cancelled');
+      return;
+    }
 
+    await readAction('Image captured. Processing text extraction.');
     setState(() {
       _imageFile = File(photo.path);
       _isProcessing = true;
@@ -144,6 +169,15 @@ class _OCRReaderPageState extends State<OCRReaderPage> {
       _extractedText = recognizedText.text;
       _isProcessing = false;
     });
+
+    if (recognizedText.text.isNotEmpty) {
+      await readAction('Text extraction completed');
+      await voiceService.speak('Extracted ${recognizedText.text.length} characters');
+      // Listening will restart automatically after speaking completes
+    } else {
+      await readAction('No text found in the image');
+      // Listening will restart automatically after speaking completes
+    }
   }
 
   @override
